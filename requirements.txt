@@ -1,0 +1,12 @@
+fastapi>=0.143
+uvicorn[standard]>=0.54
+yt-dlp>=2026.8.19
+imageio-ffmpeg>=0.6
+google-api-python-client>=2.201
+google-auth-oauthlib>=1.5
+anthropic>=1.13
+python-dotenv>=1.2
+itsdangerous>=2.2
+# tests
+pytest>=9.1
+httpx>=0.28

@@ -1,0 +1,14 @@
+# secrets and personal data - never share these
+.env
+.env.*
+!.env.example
+data/
+*.cookies.txt
+cookies.txt
+client_secret*.json
+
+# local stuff
+.venv/
+__pycache__/
+.pytest_cache/
+.preview-data/

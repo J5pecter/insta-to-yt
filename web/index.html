@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Insta to YouTube</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237c5cff'/%3E%3Cpath d='M12 9l12 7-12 7z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">&#9654;</span>
+      <div>
+        <div class="brand-name">Insta &rarr; YouTube</div>
+        <div class="brand-sub">Task-by-task video uploader</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div id="ai-status" class="pill">AI&hellip;</div>
+      <div id="yt-container" class="channel-dropdown-container">
+        <div id="yt-status" class="pill">YouTube&hellip;</div>
+        <div id="channel-dropdown" class="channel-dropdown-menu" hidden></div>
+      </div>
+      <button id="logout" class="btn ghost small" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="notice" class="notice" role="status" hidden></div>
+
+    <section id="setup-card" class="card setup-card" hidden>
+      <div class="setup-header">
+        <h2>YouTube API Setup</h2>
+        <p class="muted">Upload or paste your <code>client_secret.json</code> to enable YouTube uploads.</p>
+      </div>
+      <div class="setup-steps">
+        <p>1. In Google Cloud Console, enable <strong>YouTube Data API v3</strong> and create an <strong>OAuth 2.0 Client ID</strong> (Web Application) with Authorized Redirect URI:</p>
+        <div class="uri-copy-box">
+          <code id="redirect-uri-text">http://localhost:8000/youtube/callback</code>
+          <button class="btn small" type="button" id="copy-uri-btn">Copy URI</button>
+        </div>
+        <p>2. Paste your downloaded JSON credentials here or upload the file:</p>
+        <textarea id="setup-json" rows="3" placeholder='{"web":{"client_id":"...","client_secret":"..."}}'></textarea>
+        <div class="setup-actions">
+          <input type="file" id="setup-file" accept=".json" style="display:none">
+          <button class="btn" type="button" id="browse-file-btn">Choose File</button>
+          <button class="btn primary" type="button" id="save-setup-btn">Save Credentials</button>
+        </div>
+        <p id="setup-error" class="error" hidden></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Add Instagram video task</h2>
+        <div id="current-channel-badge" class="channel-pill-tag"></div>
+      </div>
+      <form id="add-form" class="add-form">
+        <textarea id="links" rows="3" placeholder="Paste Instagram reel or post links here &mdash; one per line" required></textarea>
+        <div class="add-options">
+          <label class="field-inline">Upload to channel:
+            <select id="task-channel">
+              <option value="">(Active channel)</option>
+            </select>
+          </label>
+          <label class="field-inline">Privacy on YouTube
+            <select id="privacy">
+              <option value="private">Private</option>
+              <option value="unlisted">Unlisted</option>
+              <option value="public">Public</option>
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" id="auto-upload" checked> Upload automatically when ready</label>
+        </div>
+        <label class="check"><input type="checkbox" id="rights"> I own these videos or have the creator's permission to repost them</label>
+        <div><button class="btn primary" type="submit" id="add-btn">Add to queue</button></div>
+      </form>
+      <ul id="add-results" class="results"></ul>
+    </section>
+
+    <section class="stats" id="stats" aria-label="Summary"></section>
+
+    <section class="card">
+      <div class="list-head">
+        <h2>Upload history</h2>
+        <input id="search" type="search" placeholder="Search title, account or link">
+      </div>
+      <div class="filters" id="filters">
+        <button type="button" data-filter="all" class="active">All</button>
+        <button type="button" data-filter="uploaded">On YouTube</button>
+        <button type="button" data-filter="review">Needs review</button>
+        <button type="button" data-filter="progress">In progress</button>
+        <button type="button" data-filter="failed">Failed</button>
+        <button type="button" data-filter="duplicate">Duplicates</button>
+      </div>
+      <div id="list" class="list"></div>
+      <p id="empty" class="empty" hidden>No videos yet. Paste an Instagram link above to start.</p>
+    </section>
+  </main>
+
+  <dialog id="review">
+    <form id="review-form" class="review">
+      <div class="review-head">
+        <h2 id="r-heading">Review before upload</h2>
+        <button type="button" class="btn ghost small" id="r-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="review-top">
+        <img id="r-thumb" alt="Video preview">
+        <div class="review-info">
+          <div id="r-ai" class="ai-box"></div>
+          <p id="r-note" class="note" hidden></p>
+          <a id="r-source" target="_blank" rel="noopener noreferrer">Open the original on Instagram</a>
+        </div>
+      </div>
+      <label class="field"><span class="field-head">Title <span id="r-count" class="count"></span></span>
+        <input id="r-title" maxlength="100" required>
+      </label>
+      <label class="field">Description
+        <textarea id="r-desc" rows="8"></textarea>
+      </label>
+      <label class="field"><span class="field-head">Tags <span class="hint">separate with commas</span></span>
+        <input id="r-tags">
+      </label>
+      <div class="review-row-inline">
+        <label class="field-inline">Upload to channel
+          <select id="r-channel">
+            <option value="">(Active channel)</option>
+          </select>
+        </label>
+        <label class="field-inline">Privacy on YouTube
+          <select id="r-privacy">
+            <option value="private">Private</option>
+            <option value="unlisted">Unlisted</option>
+            <option value="public">Public</option>
+          </select>
+        </label>
+      </div>
+      <p id="r-error" class="error" hidden></p>
+      <div class="review-actions">
+        <button type="button" class="btn ghost" id="r-cancel">Close</button>
+        <button type="button" class="btn" id="r-save">Save changes</button>
+        <button type="button" class="btn primary" id="r-upload">Upload to YouTube</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
