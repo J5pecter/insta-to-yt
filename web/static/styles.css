@@ -59,6 +59,20 @@ a { color: var(--accent); }
 h2 { font-size: 17px; margin: 0 0 12px; }
 code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-size: 13px; }
 
+.web-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.web-banner-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
 /* ---------- top bar ---------- */
 .topbar {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;

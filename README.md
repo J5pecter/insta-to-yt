@@ -1,5 +1,10 @@
 # Insta → YouTube · Task-by-Task Video Uploader
 
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-7c5cff?style=flat&logo=github)](https://j5pecter.github.io/insta-to-yt/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+🌐 **Live Web Portal**: [https://j5pecter.github.io/insta-to-yt/](https://j5pecter.github.io/insta-to-yt/)
+
 Paste an Instagram video or reel link into the portal. The service downloads the video **temporarily**, extracts and formats the title, description and hashtags, and uploads it to **your currently selected YouTube channel** on a **task-by-task, one-on-one** basis. Once the upload finishes, the temporary downloaded file is **automatically deleted**.
 
 Every processed link and video fingerprint is recorded so duplicates are never uploaded twice.

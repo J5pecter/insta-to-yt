@@ -20,19 +20,314 @@ function h(tag, attrs = {}, ...children) {
   return el;
 }
 
-async function api(method, url, body) {
-  const res = await fetch(url, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (res.status === 401) {
-    window.location.href = "/login";
-    throw new Error("Please log in.");
+const isStaticHost =
+  window.location.hostname.endsWith("github.io") ||
+  window.location.protocol === "file:" ||
+  window.location.hostname === "localhost" && window.location.port !== "8000" && !window.location.port.startsWith("8");
+
+let customBackend = localStorage.getItem("insta2yt_backend") || "";
+let isDemo = isStaticHost && !customBackend;
+
+function getApiBase() {
+  if (customBackend) return customBackend.replace(/\/+$/, "");
+  return "";
+}
+
+// Sample mock data for GitHub Web live preview mode
+let demoChannels = [
+  {
+    channel_id: "demo-main",
+    title: "Daily Shorts Official",
+    custom_url: "@dailyshortsofficial",
+    thumbnail_url: "",
+    is_active: 1,
+  },
+  {
+    channel_id: "demo-backup",
+    title: "Clips & Reels Hub",
+    custom_url: "@reelsandclips",
+    thumbnail_url: "",
+    is_active: 0,
+  },
+];
+
+let demoVideos = [
+  {
+    id: 1,
+    shortcode: "DA_hydrapress",
+    source_url: "https://www.instagram.com/reel/DA_hydrapress/",
+    status: "uploaded",
+    privacy: "public",
+    auto_upload: true,
+    channel_id: "demo-main",
+    channel_title: "Daily Shorts Official",
+    title: "Satisfying Hydraulic Press Crush #Shorts",
+    description: "Crushing various objects with a hydraulic press.\n\nOriginal: https://www.instagram.com/reel/DA_hydrapress/\n#shorts #satisfying",
+    tags: ["shorts", "satisfying", "viral"],
+    youtube_id: "dQw4w9WgXcQ",
+    youtube_url: "https://youtu.be/dQw4w9WgXcQ",
+    progress: 100,
+    note: null,
+    duplicate_of: null,
+    duplicate_hits: 0,
+    has_file: false,
+    has_thumb: false,
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    uploaded_at: new Date(Date.now() - 3000000).toISOString(),
+  },
+  {
+    id: 2,
+    shortcode: "DB_kineticsand",
+    source_url: "https://www.instagram.com/reel/DB_kineticsand/",
+    status: "review",
+    privacy: "unlisted",
+    auto_upload: false,
+    channel_id: "demo-main",
+    channel_title: "Daily Shorts Official",
+    title: "Kinetic Sand ASMR Slicing & Crushing",
+    description: "Crispy slicing of kinetic sand blocks.\n\nOriginal: https://www.instagram.com/reel/DB_kineticsand/\n#shorts #relaxing",
+    tags: ["shorts", "relaxing", "sand"],
+    youtube_id: null,
+    youtube_url: null,
+    progress: 0,
+    note: "Auto-upload was turned off. Ready for your review.",
+    duplicate_of: null,
+    duplicate_hits: 0,
+    has_file: true,
+    has_thumb: false,
+    created_at: new Date(Date.now() - 7200000).toISOString(),
+    uploaded_at: null,
+  },
+];
+
+function updateWebBanner() {
+  const banner = $("web-mode-banner");
+  if (!banner) return;
+  if (!isStaticHost) {
+    banner.hidden = true;
+    return;
   }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong.");
-  return data;
+  banner.hidden = false;
+  const textEl = $("web-banner-text");
+  if (customBackend) {
+    textEl.innerHTML = `<strong>Runner Connected:</strong> Talking to live backend at <code>${customBackend}</code>`;
+  } else {
+    textEl.innerHTML = `<strong>GitHub Web Preview:</strong> Interactive demo mode active. Connect your local runner (<code>start.bat</code>) anytime.`;
+  }
+}
+
+function simulatePipeline(video) {
+  setTimeout(() => {
+    video.status = "downloading";
+    video.progress = 25;
+    renderList();
+    renderStats(getDemoCounts());
+  }, 1200);
+
+  setTimeout(() => {
+    video.status = "analyzing";
+    video.progress = 50;
+    video.title = `Trending Reel (${video.shortcode}) #Shorts`;
+    renderList();
+    renderStats(getDemoCounts());
+  }, 2800);
+
+  setTimeout(() => {
+    if (!video.auto_upload) {
+      video.status = "review";
+      video.progress = 0;
+      video.note = "Auto-upload turned off. Ready for your review.";
+      renderList();
+      renderStats(getDemoCounts());
+      showNotice("Video downloaded & processed! Ready for your review.");
+    } else {
+      video.status = "uploading";
+      video.progress = 75;
+      renderList();
+      renderStats(getDemoCounts());
+
+      setTimeout(() => {
+        video.status = "uploaded";
+        video.progress = 100;
+        video.youtube_id = "yt_" + video.shortcode;
+        video.youtube_url = "https://youtu.be/yt_" + video.shortcode;
+        video.uploaded_at = new Date().toISOString();
+        video.has_file = false;
+        renderList();
+        renderStats(getDemoCounts());
+        showNotice("Video successfully uploaded to YouTube! Temporary file deleted immediately.");
+      }, 2000);
+    }
+  }, 4400);
+}
+
+function getDemoCounts() {
+  return {
+    total: demoVideos.length,
+    uploaded: demoVideos.filter((v) => v.status === "uploaded").length,
+    review: demoVideos.filter((v) => v.status === "review").length,
+    in_progress: demoVideos.filter((v) => IN_PROGRESS.includes(v.status)).length,
+    failed: demoVideos.filter((v) => v.status === "failed").length,
+  };
+}
+
+async function handleDemoApi(method, url, body) {
+  if (url === "/api/status") {
+    const activeChan = demoChannels.find((c) => c.is_active) || demoChannels[0];
+    return {
+      ai: { provider: "free", ready: true, model: "rules", message: "Free mode active" },
+      youtube: {
+        configured: true,
+        channel_id: activeChan.channel_id,
+        channel_title: activeChan.title,
+        channels: demoChannels,
+      },
+      counts: getDemoCounts(),
+    };
+  }
+  if (url === "/api/channels") {
+    return demoChannels;
+  }
+  if (url.startsWith("/api/channels/") && url.endsWith("/select")) {
+    const parts = url.split("/");
+    const chId = parts[3];
+    for (const c of demoChannels) {
+      c.is_active = c.channel_id === chId ? 1 : 0;
+    }
+    return { ok: true, channel_id: chId };
+  }
+  if (url.startsWith("/api/channels/") && method === "DELETE") {
+    const parts = url.split("/");
+    const chId = parts[3];
+    demoChannels = demoChannels.filter((c) => c.channel_id !== chId);
+    return { ok: true };
+  }
+  if (url === "/api/videos") {
+    return demoVideos;
+  }
+  if (url === "/api/add" && method === "POST") {
+    const lines = (body.links || "").split("\n").map((l) => l.trim()).filter(Boolean);
+    const added = [];
+    const activeChan = demoChannels.find((c) => c.is_active) || demoChannels[0];
+    for (const line of lines) {
+      const match = line.match(/(?:reel|p)\/([A-Za-z0-9_-]+)/);
+      const shortcode = match ? match[1] : "reel_" + Math.random().toString(36).slice(2, 8);
+      const existing = demoVideos.find((v) => v.shortcode === shortcode);
+      if (existing) {
+        added.push({ link: line, status: "duplicate", message: "Already checked in this demo session." });
+        continue;
+      }
+      const newVid = {
+        id: demoVideos.length + 1,
+        shortcode,
+        source_url: line,
+        status: "queued",
+        privacy: body.privacy || "private",
+        auto_upload: body.auto_upload !== false,
+        channel_id: body.channel_id || activeChan.channel_id,
+        channel_title: activeChan.title,
+        title: `Instagram Video ${shortcode}`,
+        description: `Uploaded from: ${line}\n\n#shorts`,
+        tags: ["shorts"],
+        youtube_id: null,
+        youtube_url: null,
+        progress: 0,
+        note: null,
+        duplicate_of: null,
+        duplicate_hits: 0,
+        has_file: false,
+        has_thumb: false,
+        created_at: new Date().toISOString(),
+        uploaded_at: null,
+      };
+      demoVideos.unshift(newVid);
+      added.push({ link: line, status: "queued", video_id: newVid.id });
+      simulatePipeline(newVid);
+    }
+    return { added, total_submitted: lines.length };
+  }
+  if (url.startsWith("/api/videos/") && url.endsWith("/edit") && method === "POST") {
+    const id = parseInt(url.split("/")[3], 10);
+    const v = demoVideos.find((x) => x.id === id);
+    if (v) {
+      if (body.title) v.title = body.title;
+      if (body.description) v.description = body.description;
+      if (body.tags) v.tags = body.tags;
+      if (body.privacy) v.privacy = body.privacy;
+      if (body.channel_id) {
+        v.channel_id = body.channel_id;
+        const ch = demoChannels.find((c) => c.channel_id === body.channel_id);
+        if (ch) v.channel_title = ch.title;
+      }
+    }
+    return { ok: true };
+  }
+  if (url.startsWith("/api/videos/") && url.endsWith("/upload") && method === "POST") {
+    const id = parseInt(url.split("/")[3], 10);
+    const v = demoVideos.find((x) => x.id === id);
+    if (v) {
+      v.status = "uploading";
+      v.progress = 60;
+      setTimeout(() => {
+        v.status = "uploaded";
+        v.progress = 100;
+        v.youtube_id = "yt_" + v.shortcode;
+        v.youtube_url = "https://youtu.be/yt_" + v.shortcode;
+        v.uploaded_at = new Date().toISOString();
+        v.has_file = false;
+        renderList();
+        renderStats(getDemoCounts());
+        showNotice("Uploaded to YouTube!");
+      }, 1500);
+    }
+    return { ok: true };
+  }
+  if (url.startsWith("/api/videos/") && url.endsWith("/retry") && method === "POST") {
+    const id = parseInt(url.split("/")[3], 10);
+    const v = demoVideos.find((x) => x.id === id);
+    if (v) {
+      v.status = "queued";
+      simulatePipeline(v);
+    }
+    return { ok: true };
+  }
+  if (url === "/api/logout") {
+    return { ok: true };
+  }
+  if (url === "/api/client-secret") {
+    return { ok: true };
+  }
+  return {};
+}
+
+async function api(method, url, body) {
+  if (isDemo) {
+    return handleDemoApi(method, url, body);
+  }
+  const fullUrl = getApiBase() + url;
+  try {
+    const res = await fetch(fullUrl, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) {
+      if (!isStaticHost) {
+        window.location.href = "login";
+      }
+      throw new Error("Please log in.");
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong.");
+    return data;
+  } catch (err) {
+    if (isStaticHost && !customBackend) {
+      isDemo = true;
+      updateWebBanner();
+      return handleDemoApi(method, url, body);
+    }
+    throw err;
+  }
 }
 
 function showNotice(text, bad = false) {
@@ -534,15 +829,57 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close dropdown on outside click
-  document.addEventListener("click", (e) => {
-    const container = $("yt-container");
-    const dropdown = $("channel-dropdown");
-    if (dropdown && container && !container.contains(e.target)) {
-      dropdown.hidden = true;
-    }
-  });
+  // Backend settings dialog events
+  const backendSettingsBtn = $("backend-settings-btn");
+  const backendDialog = $("backend-dialog");
+  const backendForm = $("backend-form");
+  const backendResetBtn = $("backend-reset-btn");
+  const backendInput = $("backend-url-input");
 
+  if (backendSettingsBtn && backendDialog) {
+    backendSettingsBtn.addEventListener("click", () => {
+      if (backendInput) backendInput.value = customBackend;
+      backendDialog.showModal();
+    });
+  }
+
+  if (backendForm && backendDialog) {
+    backendForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const val = backendInput ? backendInput.value.trim() : "";
+      if (val) {
+        customBackend = val;
+        localStorage.setItem("insta2yt_backend", val);
+        isDemo = false;
+      } else {
+        customBackend = "";
+        localStorage.removeItem("insta2yt_backend");
+        isDemo = isStaticHost;
+      }
+      backendDialog.close();
+      updateWebBanner();
+      showNotice(isDemo ? "Using demo mode." : `Connected to runner: ${customBackend}`);
+      await loadStatus().catch((err) => showNotice(err.message, true));
+      await refresh();
+    });
+  }
+
+  if (backendResetBtn && backendDialog) {
+    backendResetBtn.addEventListener("click", async () => {
+      customBackend = "";
+      localStorage.removeItem("insta2yt_backend");
+      isDemo = isStaticHost;
+      if (backendInput) backendInput.value = "";
+      backendDialog.close();
+      updateWebBanner();
+      showNotice("Reset to interactive demo mode.");
+      await loadStatus().catch(() => {});
+      await refresh();
+    });
+  }
+
+  updateWebBanner();
   loadStatus().catch((err) => showNotice(err.message, true));
   refresh();
 });
+

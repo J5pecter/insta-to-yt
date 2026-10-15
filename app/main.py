@@ -138,8 +138,17 @@ def create_app(settings: Settings, *, db: Database | None = None, youtube: YouTu
         if start_worker:
             pipeline.stop()
 
+    from fastapi.middleware.cors import CORSMiddleware
+
     app = FastAPI(title="Insta to YouTube", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.db, app.state.pipeline, app.state.youtube = db, pipeline, youtube
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret, session_cookie="insta2yt_session",
                        same_site="lax", max_age=7 * 24 * 3600)
 
