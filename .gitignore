@@ -26,16 +26,16 @@ cookies.txt
 *.sqlite-shm
 
 # Runtime media and personal data
-data/
-storage/
-runtime/
-data/private/
-downloads/
-uploads/
-media/
-backups/
-logs/
-temp/
+/data/
+/storage/
+/runtime/
+/data/private/
+/downloads/
+/uploads/
+/media/
+/backups/
+/logs/
+/temp/
 .preview-data/
 
 # Dependencies and caches

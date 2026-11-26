@@ -19,12 +19,12 @@ secrets/
 cookies.txt
 
 # Runtime databases & storage
-data/
-storage/
-runtime/
-backups/
-logs/
-temp/
+/data/
+/storage/
+/runtime/
+/backups/
+/logs/
+/temp/
 *.db
 *.db-wal
 *.db-shm
