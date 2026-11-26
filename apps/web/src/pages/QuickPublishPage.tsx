@@ -19,7 +19,7 @@ import {
   Camera,
   ShieldCheck,
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api, resolveMediaUrl } from '../services/api';
 import { useFeedback } from '../components/Feedback';
 
 interface QuickPublishPageProps {
@@ -457,13 +457,13 @@ export const QuickPublishPage: React.FC<QuickPublishPageProps> = ({
               <div className="aspect-[9/16] max-h-[420px] mx-auto rounded-xl overflow-hidden bg-background border border-border flex items-center justify-center relative">
                 {prepared.video_url ? (
                   <video
-                    src={prepared.video_url}
-                    poster={prepared.thumbnail_url}
+                    src={resolveMediaUrl(prepared.video_url)}
+                    poster={resolveMediaUrl(prepared.thumbnail_url)}
                     controls
                     className="w-full h-full object-contain"
                   />
                 ) : prepared.thumbnail_url ? (
-                  <img src={prepared.thumbnail_url} alt="Video preview" className="w-full h-full object-cover" />
+                  <img src={resolveMediaUrl(prepared.thumbnail_url)} alt="Video preview" className="w-full h-full object-cover" />
                 ) : null}
               </div>
               <div className="text-center text-xs text-muted">

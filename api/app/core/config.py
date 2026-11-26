@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     PUBLIC_BASE_URL: str = "http://localhost:8000"
-    ALLOWED_ORIGINS: str = "http://localhost:8000,http://localhost:5173,http://127.0.0.1:8000,http://127.0.0.1:5173"
+    ALLOWED_ORIGINS: str = "http://localhost:8000,http://localhost:5173,http://127.0.0.1:8000,http://127.0.0.1:5173,https://j5pecter.github.io"
 
     # Storage
     DATA_DIR: Path = PROJECT_ROOT / "data"

@@ -9,7 +9,36 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE = '/api/v1';
+const BACKEND_URL_KEY = 'socialrelay_backend_url';
+
+export function isRemoteStaticHost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host.endsWith('github.io') || (host !== 'localhost' && host !== '127.0.0.1' && window.location.port === '');
+}
+
+export function getBackendOrigin(): string {
+  if (typeof window === 'undefined') return '';
+  const saved = localStorage.getItem(BACKEND_URL_KEY);
+  if (saved) return saved.replace(/\/+$/, '');
+  if (isRemoteStaticHost()) return 'http://localhost:8000';
+  return '';
+}
+
+export function setBackendOrigin(url: string): void {
+  const clean = url.trim().replace(/\/+$/, '');
+  if (clean) {
+    localStorage.setItem(BACKEND_URL_KEY, clean);
+  } else {
+    localStorage.removeItem(BACKEND_URL_KEY);
+  }
+}
+
+export function resolveMediaUrl(path?: string | null): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${getBackendOrigin()}${path}`;
+}
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('socialrelay_token');
@@ -22,7 +51,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const base = `${getBackendOrigin()}/api/v1`;
+  const res = await fetch(`${base}${endpoint}`, {
     ...options,
     headers,
   });
