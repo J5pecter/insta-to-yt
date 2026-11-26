@@ -1,35 +1,24 @@
 @echo off
-title Insta to YouTube
+setlocal
 cd /d "%~dp0"
 
-if not exist ".venv\Scripts\python.exe" (
-  echo First start: installing what the app needs. This takes a few minutes...
-  python -m venv .venv || goto :nopython
-  ".venv\Scripts\python.exe" -m pip install --upgrade pip >nul
-  ".venv\Scripts\python.exe" -m pip install -r requirements.txt || goto :failed
-)
+echo ============================================================
+echo   SocialRelay - Starting Self-Hosted Platform
+echo ============================================================
 
 if not exist ".env" (
-  copy ".env.example" ".env" >nul
-  echo.
-  echo  A settings file called .env was created and will open in Notepad.
-  echo  Set ADMIN_PASSWORD ^(and your keys^), save it, then run start.bat again.
-  echo.
-  start notepad ".env"
-  pause
-  exit /b
+    echo [.env] Not found. Creating from .env.example...
+    copy .env.example .env >nul
 )
 
-".venv\Scripts\python.exe" -m app
-pause
-exit /b
+if not exist ".venv\Scripts\python.exe" (
+    echo [.venv] Virtual environment not found. Please install Python and virtual environment.
+    pause
+    exit /b 1
+)
 
-:nopython
-echo Python is not installed. Install it from https://www.python.org/downloads/ and tick "Add python.exe to PATH".
-pause
-exit /b 1
+echo Starting SocialRelay backend and dashboard on http://localhost:8000
+echo Default admin password: admin1234
+start "" http://localhost:8000
 
-:failed
-echo Installing failed. Check your internet connection and run start.bat again.
-pause
-exit /b 1
+.venv\Scripts\python -m uvicorn api.app.main:app --host 0.0.0.0 --port 8000

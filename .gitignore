@@ -1,14 +1,57 @@
-# secrets and personal data - never share these
+# Private environment configuration
 .env
 .env.*
 !.env.example
-data/
+
+# OAuth credentials & secrets
+client_secret*.json
+client_secrets*.json
+token.json
+tokens.json
+credentials.json
+credentials/
+secrets/
+*.pem
+*.key
 *.cookies.txt
 cookies.txt
-client_secret*.json
 
-# local stuff
-.venv/
-__pycache__/
-.pytest_cache/
+# Runtime databases
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+
+# Runtime media and personal data
+data/
+storage/
+runtime/
+data/private/
+downloads/
+uploads/
+media/
+backups/
+logs/
+temp/
 .preview-data/
+
+# Dependencies and caches
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Build outputs
+apps/web/dist/
+dist/
+build/
+*.log
+
+# Private test outputs
+playwright-report/
+test-results/

@@ -1,0 +1,15 @@
+:8080 {
+    encode gzip zstd
+
+    # Route API requests to FastAPI backend
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+
+    # Serve built Vite frontend SPA
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}

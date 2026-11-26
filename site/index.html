@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SocialRelay — Self-Hosted Social Media Automation</title>
+  <style>
+    :root {
+      --bg: #101218;
+      --surface: #181B23;
+      --elevated: #20242E;
+      --border: #2C303A;
+      --primary: #7C3AED;
+      --text: #F8FAFC;
+      --muted: #A1A1AA;
+      --success: #22C55E;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1040px; margin: 0 auto; padding: 32px 20px; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 48px;
+    }
+    .brand { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .badge {
+      font-size: 0.75rem; padding: 4px 10px; border-radius: 999px;
+      background: rgba(124, 58, 237, 0.15); color: #A78BFA; border: 1px solid rgba(124, 58, 237, 0.35);
+    }
+    .hero { max-width: 720px; margin-bottom: 48px; }
+    .hero h1 { font-size: 2.5rem; line-height: 1.2; margin-bottom: 16px; }
+    .hero p { color: var(--muted); font-size: 1.05rem; margin-bottom: 24px; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+    .btn {
+      display: inline-block; padding: 12px 20px; border-radius: 10px; font-weight: 600;
+      font-size: 0.9rem; text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 48px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    }
+    .card h3 { font-size: 1rem; margin-bottom: 8px; }
+    .card p { font-size: 0.875rem; color: var(--muted); }
+    .code-block {
+      background: var(--elevated); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px; font-family: monospace; font-size: 0.85rem; overflow-x: auto; color: #E2E8F0;
+    }
+    footer {
+      border-top: 1px solid var(--border); padding-top: 24px; margin-top: 48px;
+      font-size: 0.8rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <span>SocialRelay</span>
+        <span class="badge">V2 · Self-Hosted</span>
+      </div>
+      <a href="https://github.com/J5pecter/insta-to-yt" class="btn btn-secondary">GitHub Repository</a>
+    </header>
+
+    <section class="hero">
+      <h1>One video. Multiple platforms. Zero monthly subscriptions.</h1>
+      <p>
+        SocialRelay is an open-source, self-hosted social media automation engine. Paste an authorized Instagram Reel link,
+        automatically transcode to 9:16 vertical 1080×1920 via FFmpeg, prepare compliant metadata, and publish to YouTube Shorts
+        and Instagram Reels with one click from your private execution host.
+      </p>
+      <div class="cta-row">
+        <a href="#install" class="btn btn-primary">Install Locally</a>
+        <a href="https://github.com/J5pecter/insta-to-yt/blob/main/README.md" class="btn btn-secondary">Read Documentation</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>One-Click Quick Publish</h3>
+        <p>Paste an authorized URL, auto-prepare metadata and 9:16 video in the background, and publish with real-time step-by-step verification.</p>
+      </div>
+      <div class="card">
+        <h3>Private Execution Surface</h3>
+        <p>Your SQLite database, Fernet-encrypted OAuth tokens, and video storage stay 100% on your own hardware (localhost or private VPN).</p>
+      </div>
+      <div class="card">
+        <h3>Deterministic + Local AI</h3>
+        <p>Automatic caption-to-title conversion works offline out of the box, with optional local Ollama enhancement and zero paid AI APIs.</p>
+      </div>
+      <div class="card">
+        <h3>Idempotent & Resilient</h3>
+        <p>Persistent SQLite job queue, 20-state lifecycle machine, and SHA-256 idempotency keys prevent duplicate uploads across restarts.</p>
+      </div>
+    </section>
+
+    <section id="install" class="card" style="margin-bottom: 32px;">
+      <h2 style="font-size: 1.25rem; margin-bottom: 12px;">Quick Installation</h2>
+      <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 16px;">
+        GitHub Pages hosts this public documentation portal only. The FastAPI backend, FFmpeg engine, and automation worker run privately on your machine:
+      </p>
+      <div class="code-block">
+git clone https://github.com/J5pecter/insta-to-yt.git<br/>
+cd insta-to-yt<br/><br/>
+# Windows PowerShell<br/>
+.\infrastructure\scripts\setup-windows.ps1<br/>
+.\infrastructure\scripts\start-windows.ps1<br/><br/>
+# Linux / Docker<br/>
+docker compose up -d --build
+      </div>
+    </section>
+
+    <footer>
+      <span>SocialRelay Open-Source Project · MIT License</span>
+      <span>Public documentation site contains zero user data or credentials.</span>
+    </footer>
+  </div>
+</body>
+</html>

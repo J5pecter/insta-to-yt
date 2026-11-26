@@ -1,0 +1,44 @@
+# Git & environment secrets
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Credentials & keys
+client_secret*.json
+client_secrets*.json
+token.json
+tokens.json
+credentials.json
+credentials/
+secrets/
+*.pem
+*.key
+*.cookies.txt
+cookies.txt
+
+# Runtime databases & storage
+data/
+storage/
+runtime/
+backups/
+logs/
+temp/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*
+
+# Dependencies & build artifacts
+node_modules/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+apps/web/dist/
+dist/
+build/
+*.log
+playwright-report/
+test-results/
