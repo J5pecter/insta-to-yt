@@ -1,0 +1,29 @@
+name: Release Packaging
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package-release:
+    name: Build & Publish Source Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify no runtime secrets in tag
+        run: bash scripts/security-audit.sh
+
+      - name: Create sanitized release archive
+        run: |
+          git archive --format=tar.gz --prefix=socialrelay-${{ github.ref_name }}/ -o socialrelay-${{ github.ref_name }}.tar.gz HEAD
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: socialrelay-*.tar.gz
+          generate_release_notes: true

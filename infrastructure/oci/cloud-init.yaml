@@ -1,0 +1,19 @@
+#cloud-config
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - sqlite3
+  - ufw
+
+runcmd:
+  - ufw allow OpenSSH
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+  - curl -fsSL https://get.docker.com | sh
+  - usermod -aG docker ubuntu
+  - mkdir -p /var/lib/socialrelay/data /var/lib/socialrelay/storage/originals /var/lib/socialrelay/storage/processed /var/lib/socialrelay/storage/thumbnails /var/lib/socialrelay/storage/temporary /var/lib/socialrelay/storage/backups
+  - chown -R ubuntu:ubuntu /var/lib/socialrelay
+  - chmod 700 /var/lib/socialrelay /var/lib/socialrelay/data

@@ -1,0 +1,28 @@
+name: Deploy Cloud Backend (Release-Gated)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: 'Type DEPLOY to update the remote cloud backend'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-backend:
+    if: github.event.inputs.confirm_deploy == 'DEPLOY'
+    runs-on: ubuntu-latest
+    environment: production-cloud
+    steps:
+      - name: Deploy approved main branch over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.CLOUD_HOST }}
+          username: ${{ secrets.CLOUD_USER }}
+          key: ${{ secrets.CLOUD_SSH_KEY }}
+          script: |
+            cd /opt/socialrelay
+            ./scripts/update-production.sh

@@ -34,6 +34,16 @@ class Settings(BaseSettings):
     ENABLE_EMBEDDED_WORKER: bool = True
     FFMPEG_CONCURRENCY: int = 1
 
+    # Free-Tier Zero-Cost Enforcement
+    CLOUD_PROVIDER: str = "oci"
+    FREE_TIER_ONLY: bool = True
+    ALLOW_PAID_RESOURCES: bool = False
+    ALLOW_AUTOMATIC_PLAN_UPGRADE: bool = False
+    MAX_CONCURRENT_VIDEO_JOBS: int = 1
+    ENABLE_LOCAL_AI: bool = False
+    MEDIA_RETENTION_DAYS: int = 7
+    STORAGE_QUOTA_GB: int = 40
+
     # Storage
     DATA_DIR: Path = PROJECT_ROOT / "data"
     STORAGE_DIR: Path = PROJECT_ROOT / "storage"

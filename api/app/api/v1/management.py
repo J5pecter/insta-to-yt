@@ -34,6 +34,7 @@ from ...models.entities import (
     SourceMedia,
     User,
 )
+from ...services.cost_control import cost_control
 from ...services.metadata.engine import metadata_engine
 from ...services.storage.manager import storage_manager
 from ...workers.state_machine import State
@@ -294,32 +295,43 @@ def get_audit_logs(
 
 @router.get("/system/health")
 def get_system_health(current_user: User = Depends(get_current_user)):
-    """Inspect core subsystems: SQLite, FFmpeg, Ollama, disk space, and memory."""
+    """Inspect core subsystems: SQLite, FFmpeg, Ollama, disk space, and free-tier limits."""
     ai_status = metadata_engine.check_ollama_status()
     storage_stats = storage_manager.get_storage_stats()
+    gate = cost_control.check_processing_allowed()
 
     return {
-        "status": "healthy",
+        "status": "healthy" if gate["allowed"] else "degraded",
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "environment": settings.ENVIRONMENT,
         "database": {
             "engine": "SQLite WAL",
-            "url": settings.DATABASE_URL,
+            "url": "redacted" if settings.ENVIRONMENT == "production" else settings.DATABASE_URL,
             "status": "connected",
         },
         "media_processor": {
             "ffmpeg": "available",
-            "bundled": True,
+            "max_concurrent_jobs": settings.MAX_CONCURRENT_VIDEO_JOBS,
+            "processing_allowed": gate["allowed"],
         },
         "ai_engine": {
             "provider": settings.AI_PROVIDER,
-            "ollama_available": ai_status["available"],
+            "local_ai_enabled": settings.ENABLE_LOCAL_AI,
+            "ollama_available": ai_status["available"] if settings.ENABLE_LOCAL_AI else False,
             "model": ai_status["selected_model"],
         },
         "storage": {
             "free_mb": storage_stats["free_mb"],
+            "used_mb": storage_stats.get("total_used_mb", 0),
             "status": "sufficient" if storage_stats["free_mb"] > settings.DISK_FREE_MIN_MB else "low_disk",
         },
     }
+
+
+@router.get("/system/cost-control")
+def get_cost_control_report(current_user: User = Depends(get_current_user)):
+    """Return measured host usage and zero-cost free-tier enforcement status."""
+    return cost_control.get_resource_report()
 
 
 @router.get("/system/storage")

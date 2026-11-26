@@ -1,0 +1,31 @@
+name: Security & Dependency Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  secret-and-audit:
+    name: Secret Scan & Static Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run SocialRelay Hygiene Script
+        run: bash scripts/security-audit.sh
+
+      - name: Frontend npm audit
+        working-directory: apps/web
+        run: npm audit --audit-level=high || true

@@ -9,13 +9,19 @@ export class ApiError extends Error {
   }
 }
 
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1';
+
 export function getBackendOrigin(): string {
+  if (API_BASE.startsWith('http://') || API_BASE.startsWith('https://')) {
+    return API_BASE.replace(/\/api\/v1\/?$/, '');
+  }
   return '';
 }
 
 export function resolveMediaUrl(path?: string | null): string {
   if (!path) return '';
-  return path;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${getBackendOrigin()}${path}`;
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -29,8 +35,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const res = await fetch(`/api/v1${endpoint}`, {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers,
   });
 
@@ -80,6 +87,7 @@ export const api = {
   markNotificationRead: (id: number) => request(`/notifications/${id}/read`, { method: 'POST' }),
   getAuditLogs: (limit = 50) => request<any>(`/audit-logs?limit=${limit}`),
   getSystemHealth: () => request<any>('/system/health'),
+  getCostControl: () => request<any>('/system/cost-control'),
   getStorageStats: () => request<any>('/system/storage'),
   cleanupStorage: () => request('/system/storage/cleanup', { method: 'POST' }),
   createBackup: () => request<any>('/system/backup', { method: 'POST' }),

@@ -22,6 +22,7 @@ export const SystemPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'health' | 'storage' | 'backup' | 'audit' | 'notifications' | 'settings'>('health');
 
   const [health, setHealth] = useState<any>(null);
+  const [costControl, setCostControl] = useState<any>(null);
   const [storage, setStorage] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -41,6 +42,8 @@ export const SystemPage: React.FC = () => {
     try {
       const h = await api.getSystemHealth();
       setHealth(h);
+      const cc = await api.getCostControl().catch(() => null);
+      setCostControl(cc);
       const s = await api.getStorageStats();
       setStorage(s);
       const a = await api.getAuditLogs(30);
@@ -205,6 +208,37 @@ export const SystemPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {costControl && (
+            <div className="md:col-span-2 p-6 rounded-2xl bg-surface border border-border space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-4 h-4 text-success" />
+                  <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Free-Tier Usage & Cost Enforcement</h3>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-success/15 text-success">
+                  {costControl.policy?.free_tier_only ? 'Zero-Cost Policy Enforced' : 'Standard'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-elevated border border-border">
+                  <span className="text-muted block">Measured Disk Free</span>
+                  <span className="text-base font-bold text-foreground">{costControl.measured_host?.disk_free_gb} GB</span>
+                  <span className="text-[10px] text-muted block">of {costControl.measured_host?.disk_total_gb} GB total</span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-elevated border border-border">
+                  <span className="text-muted block">App Media Used</span>
+                  <span className="text-base font-bold text-foreground">{costControl.measured_host?.app_storage_used_mb} MB</span>
+                  <span className="text-[10px] text-muted block">Limit: {costControl.configured_limits?.storage_quota_gb} GB</span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-elevated border border-border">
+                  <span className="text-muted block">Video Concurrency</span>
+                  <span className="text-base font-bold text-foreground">{costControl.policy?.max_concurrent_video_jobs} job</span>
+                  <span className="text-[10px] text-muted block">Arch: {costControl.measured_host?.architecture}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
