@@ -36,18 +36,22 @@ async def lifespan(app: FastAPI):
     logger.info("Starting background scheduler...")
     relay_scheduler.start()
 
-    # Start background worker in daemon thread
-    worker = WorkerRunner(worker_id="embedded_worker_1")
-    worker_thread = threading.Thread(target=worker.start, kwargs={"poll_interval": 3.0}, daemon=True)
-    worker_thread.start()
-    logger.info("Embedded background worker thread started.")
+    worker = None
+    if settings.ENABLE_EMBEDDED_WORKER:
+        worker = WorkerRunner(worker_id="embedded_worker_1")
+        worker_thread = threading.Thread(target=worker.start, kwargs={"poll_interval": 3.0}, daemon=True)
+        worker_thread.start()
+        logger.info("Embedded background worker thread started.")
+    else:
+        logger.info("Embedded worker disabled (running dedicated external worker container).")
 
     yield
 
     # Shutdown:
     logger.info("Shutting down SocialRelay scheduler...")
     relay_scheduler.shutdown()
-    worker.stop()
+    if worker:
+        worker.stop()
 
 
 app = FastAPI(

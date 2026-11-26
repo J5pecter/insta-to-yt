@@ -1,6 +1,8 @@
 """Authentication endpoints for SocialRelay."""
 from __future__ import annotations
 
+import time
+from collections import defaultdict
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -14,26 +16,47 @@ from ...security.crypto import hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+_FAILED_LOGINS: dict[str, list[float]] = defaultdict(list)
+_RATE_WINDOW_SEC = 300
+_MAX_ATTEMPTS = 5
+
+
+def _check_rate_limit(key: str) -> None:
+    now = time.time()
+    attempts = [t for t in _FAILED_LOGINS[key] if now - t < _RATE_WINDOW_SEC]
+    _FAILED_LOGINS[key] = attempts
+    if len(attempts) >= _MAX_ATTEMPTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please wait 5 minutes before trying again.",
+        )
+
 
 @router.post("/login")
-def login(body: LoginRequest, response: Response, db: Session = Depends(get_db)):
+def login(body: LoginRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     """Authenticate administrator with Argon2id and set secure session cookie."""
     email = body.email or settings.ADMIN_EMAIL
+    client_ip = request.client.host if request.client else "unknown"
+    rate_key = f"{client_ip}:{email}"
+    _check_rate_limit(rate_key)
+
     user = db.execute(select(User).where(User.email == email)).scalars().first()
 
     if not user or not verify_password(body.password, user.password_hash):
+        _FAILED_LOGINS[rate_key].append(time.time())
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password.",
         )
 
+    _FAILED_LOGINS.pop(rate_key, None)
     token = create_session_token(user.id)
     response.set_cookie(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
         samesite="lax",
-        secure=False,  # localhost support
+        secure=settings.is_secure_cookies,
         max_age=settings.JWT_EXPIRE_MINUTES * 60,
     )
 

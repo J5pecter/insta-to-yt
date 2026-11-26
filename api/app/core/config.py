@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     PORT: int = 8000
     PUBLIC_BASE_URL: str = "http://localhost:8000"
     ALLOWED_ORIGINS: str = "http://localhost:8000,http://localhost:5173,http://127.0.0.1:8000,http://127.0.0.1:5173,https://j5pecter.github.io"
+    SECURE_COOKIES: bool = False
+    ENABLE_EMBEDDED_WORKER: bool = True
+    FFMPEG_CONCURRENCY: int = 1
 
     # Storage
     DATA_DIR: Path = PROJECT_ROOT / "data"
@@ -97,6 +100,22 @@ class Settings(BaseSettings):
     @property
     def temporary_dir(self) -> Path:
         return self.STORAGE_DIR / "temporary"
+
+    @property
+    def is_secure_cookies(self) -> bool:
+        return self.SECURE_COOKIES or self.PUBLIC_BASE_URL.startswith("https://") or self.ENVIRONMENT == "production"
+
+    @property
+    def effective_youtube_redirect_uri(self) -> str:
+        if self.YOUTUBE_REDIRECT_URI.startswith("http://localhost") and not self.PUBLIC_BASE_URL.startswith("http://localhost"):
+            return f"{self.PUBLIC_BASE_URL.rstrip('/')}/api/v1/accounts/youtube/callback"
+        return self.YOUTUBE_REDIRECT_URI
+
+    @property
+    def effective_instagram_redirect_uri(self) -> str:
+        if self.INSTAGRAM_REDIRECT_URI.startswith("http://localhost") and not self.PUBLIC_BASE_URL.startswith("http://localhost"):
+            return f"{self.PUBLIC_BASE_URL.rstrip('/')}/api/v1/accounts/instagram/callback"
+        return self.INSTAGRAM_REDIRECT_URI
 
     @property
     def backups_dir(self) -> Path:

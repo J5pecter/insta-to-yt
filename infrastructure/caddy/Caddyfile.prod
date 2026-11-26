@@ -1,0 +1,29 @@
+{$DOMAIN:socialrelay.skypatrol.online} {
+    encode zstd gzip
+
+    request_body {
+        max_size 550MB
+    }
+
+    # Route all API & OAuth callbacks directly to FastAPI backend (never intercepted by SPA)
+    handle /api/* {
+        reverse_proxy api:8000 {
+            flush_interval -1
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Serve compiled React production frontend
+    handle {
+        reverse_proxy web:80
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}

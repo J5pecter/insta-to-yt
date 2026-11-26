@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # OAuth credentials & secrets
 client_secret*.json

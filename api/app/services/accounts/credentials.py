@@ -105,7 +105,7 @@ def save_google_credentials(db: Session, raw_json: str, user_id: Optional[int] =
         "client_id_masked": _mask_secret(block["client_id"], 10, 28),
         "project_id": block.get("project_id", ""),
         "redirect_uris": block.get("redirect_uris", []),
-        "expected_callback_url": settings.YOUTUBE_REDIRECT_URI,
+        "expected_callback_url": settings.effective_youtube_redirect_uri,
     }
 
 
@@ -149,7 +149,7 @@ def get_google_credential_status(db: Session) -> Dict[str, Any]:
             "client_type": None,
             "client_id_masked": None,
             "redirect_uris": [],
-            "expected_callback_url": settings.YOUTUBE_REDIRECT_URI,
+            "expected_callback_url": settings.effective_youtube_redirect_uri,
         }
     client_type = "web" if "web" in cfg else "installed"
     block = cfg.get(client_type, {})
@@ -159,7 +159,7 @@ def get_google_credential_status(db: Session) -> Dict[str, Any]:
         "client_id_masked": _mask_secret(block.get("client_id", ""), 10, 28),
         "project_id": block.get("project_id", ""),
         "redirect_uris": block.get("redirect_uris", []),
-        "expected_callback_url": settings.YOUTUBE_REDIRECT_URI,
+        "expected_callback_url": settings.effective_youtube_redirect_uri,
     }
 
 
@@ -198,7 +198,7 @@ def save_instagram_credentials(
         "configured": True,
         "app_id_masked": _mask_secret(clean_id, 4, 4),
         "login_mode": login_mode,
-        "expected_callback_url": settings.INSTAGRAM_REDIRECT_URI,
+        "expected_callback_url": settings.effective_instagram_redirect_uri,
     }
 
 
@@ -229,11 +229,11 @@ def get_instagram_credential_status(db: Session) -> Dict[str, Any]:
             "configured": False,
             "app_id_masked": None,
             "login_mode": "instagram_login",
-            "expected_callback_url": settings.INSTAGRAM_REDIRECT_URI,
+            "expected_callback_url": settings.effective_instagram_redirect_uri,
         }
     return {
         "configured": bool(cfg.get("app_id") and cfg.get("app_secret")),
         "app_id_masked": _mask_secret(cfg.get("app_id", ""), 4, 4),
         "login_mode": cfg.get("login_mode", "instagram_login"),
-        "expected_callback_url": settings.INSTAGRAM_REDIRECT_URI,
+        "expected_callback_url": settings.effective_instagram_redirect_uri,
     }

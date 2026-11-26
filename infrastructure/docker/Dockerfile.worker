@@ -4,15 +4,14 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    curl \
+    sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    sqlalchemy alembic apscheduler pillow argon2-cffi pydantic-settings
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY api/ ./api/
-COPY storage/ ./storage/
-COPY data/ ./data/
+
+RUN mkdir -p /app/data /app/storage/originals /app/storage/processed /app/storage/thumbnails /app/storage/temporary /app/storage/backups
 
 CMD ["python", "-m", "api.app.workers.runner"]

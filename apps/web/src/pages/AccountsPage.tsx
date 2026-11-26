@@ -394,11 +394,11 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ onReadinessChanged }
                 </ol>
 
                 <div className="flex items-center justify-between p-2.5 rounded-lg bg-background border border-border font-mono text-[11px] text-foreground">
-                  <span className="truncate">{ytCred?.expected_callback_url || 'http://localhost:8000/api/v1/accounts/youtube/callback'}</span>
+                  <span className="truncate">{ytCred?.expected_callback_url || `${window.location.origin}/api/v1/accounts/youtube/callback`}</span>
                   <button
                     type="button"
                     onClick={() =>
-                      handleCopy(ytCred?.expected_callback_url || 'http://localhost:8000/api/v1/accounts/youtube/callback', 'Callback URL')
+                      handleCopy(ytCred?.expected_callback_url || `${window.location.origin}/api/v1/accounts/youtube/callback`, 'Callback URL')
                     }
                     className="ml-2 px-2 py-1 rounded bg-elevated hover:bg-border text-[11px] flex items-center space-x-1 flex-shrink-0"
                   >
@@ -457,12 +457,12 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ onReadinessChanged }
                 </ol>
 
                 <div className="flex items-center justify-between p-2.5 rounded-lg bg-background border border-border font-mono text-[11px] text-foreground">
-                  <span className="truncate">{igCred?.expected_callback_url || 'http://localhost:8000/api/v1/accounts/instagram/callback'}</span>
+                  <span className="truncate">{igCred?.expected_callback_url || `${window.location.origin}/api/v1/accounts/instagram/callback`}</span>
                   <button
                     type="button"
                     onClick={() =>
                       handleCopy(
-                        igCred?.expected_callback_url || 'http://localhost:8000/api/v1/accounts/instagram/callback',
+                        igCred?.expected_callback_url || `${window.location.origin}/api/v1/accounts/instagram/callback`,
                         'Callback URL'
                       )
                     }

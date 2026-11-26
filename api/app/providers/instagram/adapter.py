@@ -35,7 +35,7 @@ class InstagramAdapter:
     def __init__(self):
         self.app_id = settings.INSTAGRAM_APP_ID
         self.app_secret = settings.INSTAGRAM_APP_SECRET
-        self.redirect_uri = settings.INSTAGRAM_REDIRECT_URI
+        self.redirect_uri = settings.effective_instagram_redirect_uri
 
     def _get_config(self, db=None) -> Dict[str, str]:
         cfg = get_instagram_app_config(db)

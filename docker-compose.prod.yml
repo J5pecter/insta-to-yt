@@ -1,0 +1,102 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - ENABLE_EMBEDDED_WORKER=false
+      - DATABASE_URL=sqlite:////app/data/socialrelay.db
+      - DATA_DIR=/app/data
+      - STORAGE_DIR=/app/storage
+    volumes:
+      - ${SOCIALRELAY_DATA_DIR:-/var/lib/socialrelay/data}:/app/data
+      - ${SOCIALRELAY_STORAGE_DIR:-/var/lib/socialrelay/storage}:/app/storage
+    networks:
+      - socialrelay_internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+
+  worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=sqlite:////app/data/socialrelay.db
+      - DATA_DIR=/app/data
+      - STORAGE_DIR=/app/storage
+      - WORKER_CONCURRENCY=1
+      - FFMPEG_CONCURRENCY=1
+    volumes:
+      - ${SOCIALRELAY_DATA_DIR:-/var/lib/socialrelay/data}:/app/data
+      - ${SOCIALRELAY_STORAGE_DIR:-/var/lib/socialrelay/storage}:/app/storage
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - socialrelay_internal
+    deploy:
+      resources:
+        limits:
+          memory: 2560M
+
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.web
+    restart: unless-stopped
+    networks:
+      - socialrelay_internal
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-socialrelay.skypatrol.online}
+    volumes:
+      - ./infrastructure/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+    networks:
+      - socialrelay_internal
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+networks:
+  socialrelay_internal:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

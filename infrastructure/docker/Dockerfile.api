@@ -2,19 +2,20 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install ffmpeg and system dependencies
+# Install ffmpeg, sqlite3, and curl (ARM64 & x86_64 compatible)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    sqlite3 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    sqlalchemy alembic apscheduler pillow argon2-cffi pydantic-settings
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY api/ ./api/
-COPY storage/ ./storage/
-COPY data/ ./data/
+
+# Create mount points only — runtime data & media stay on persistent host volumes
+RUN mkdir -p /app/data /app/storage/originals /app/storage/processed /app/storage/thumbnails /app/storage/temporary /app/storage/backups
 
 EXPOSE 8000
 
