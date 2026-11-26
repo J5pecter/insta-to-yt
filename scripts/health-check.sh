@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOMAIN="${DOMAIN:-socialrelay.skypatrol.online}"
+DOMAIN="${DOMAIN:-socialrelay.yourdomain.com}"
 echo "[SocialRelay] Checking internal API health..."
 docker compose -f docker-compose.prod.yml exec -T api curl -sf http://localhost:8000/api/v1/system/health
 

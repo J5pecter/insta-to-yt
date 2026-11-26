@@ -1,6 +1,6 @@
 # SocialRelay V3 — Oracle Cloud Always Free Production Deployment Guide
 
-This guide walks through deploying **SocialRelay** as a 24/7, internet-accessible HTTPS web application at `https://socialrelay.skypatrol.online` on **Oracle Cloud Infrastructure (OCI) Always Free** (Ubuntu 24.04 ARM64 Ampere A1), with zero mandatory software subscriptions.
+This guide walks through deploying **SocialRelay** as a 24/7, internet-accessible HTTPS web application on **Oracle Cloud Infrastructure (OCI) Always Free** (Ubuntu 24.04 ARM64 Ampere A1) using your own independent domain or a free subdomain (such as DuckDNS `yourname.duckdns.org`), completely separate from any other projects, with zero mandatory software subscriptions.
 
 ---
 
@@ -8,7 +8,7 @@ This guide walks through deploying **SocialRelay** as a 24/7, internet-accessibl
 
 ```mermaid
 flowchart LR
-    User["Mobile / Laptop Browser\nhttps://socialrelay.skypatrol.online"] -->|"HTTPS 443"| Caddy["Caddy Reverse Proxy\n(Auto Let's Encrypt TLS)"]
+    User["Mobile / Laptop Browser\nhttps://socialrelay.yourdomain.com"] -->|"HTTPS 443"| Caddy["Caddy Reverse Proxy\n(Auto Let's Encrypt TLS)"]
     Caddy -->|"/api/*"| API["FastAPI Backend + Scheduler\n(Internal :8000)"]
     Caddy -->|"/*"| Web["React Production SPA\n(Nginx Internal :80)"]
     API <--> DB[("SQLite WAL DB\n/var/lib/socialrelay/data")]
@@ -20,7 +20,7 @@ flowchart LR
 
 - **Only ports `80` and `443` are exposed publicly** (via Caddy).
 - FastAPI (`:8000`), Nginx (`:80`), SQLite, and media files are isolated on an internal Docker bridge network and `/var/lib/socialrelay/`.
-- Your existing `skypatrol.online` root domain remains completely untouched—only the `socialrelay` subdomain `A` record is added.
+- Use a dedicated domain or free DuckDNS subdomain (`yourname.duckdns.org`) so SocialRelay stays completely isolated from any unrelated websites.
 
 ---
 
@@ -78,9 +78,11 @@ sudo ufw status
 
 ---
 
-## 5. Step 4 — Configure Subdomain DNS (`socialrelay.skypatrol.online`)
+## 5. Step 4 — Configure Domain / Free DuckDNS (`socialrelay.yourdomain.com`)
 
-In your domain registrar / DNS provider for `skypatrol.online`, add **only** this single record:
+You can use any domain you own, or register a **free** subdomain at [duckdns.org](https://www.duckdns.org/) (e.g. `socialrelay-app.duckdns.org`) pointing to `<YOUR_ORACLE_PUBLIC_IP>`.
+
+If using your own DNS provider, add an `A` record:
 
 | Type | Name / Host | Value / IPv4 | TTL |
 |---|---|---|---|
@@ -88,7 +90,7 @@ In your domain registrar / DNS provider for `skypatrol.online`, add **only** thi
 
 Verify DNS propagation:
 ```bash
-dig +short socialrelay.skypatrol.online
+dig +short socialrelay.yourdomain.com
 ```
 
 ---
@@ -117,7 +119,7 @@ chmod +x scripts/*.sh
 
 ## 7. Step 6 — Verify HTTPS & Connectivity
 
-1. Open `https://socialrelay.skypatrol.online` from your mobile phone or laptop (with your home PC turned off).
+1. Open `https://socialrelay.yourdomain.com` (or your DuckDNS URL) from your mobile phone or laptop (with your home PC turned off).
 2. Confirm the padlock icon (valid Let's Encrypt TLS certificate issued automatically by Caddy).
 3. Sign in with the administrator email and password you configured in `setup-admin.sh`.
 4. Confirm the top header shows **Server online**.
@@ -130,14 +132,14 @@ Your OAuth redirect URIs must now point to your HTTPS domain:
 
 - **YouTube Authorized Redirect URI** (Google Cloud Console → Credentials):
   ```
-  https://socialrelay.skypatrol.online/api/v1/accounts/youtube/callback
+  https://socialrelay.yourdomain.com/api/v1/accounts/youtube/callback
   ```
 - **Instagram OAuth Redirect URI** (Meta for Developers → Instagram API with Instagram Login):
   ```
-  https://socialrelay.skypatrol.online/api/v1/accounts/instagram/callback
+  https://socialrelay.yourdomain.com/api/v1/accounts/instagram/callback
   ```
 
-In SocialRelay (`https://socialrelay.skypatrol.online`):
+In SocialRelay (`https://socialrelay.yourdomain.com`):
 1. Open **Accounts → YouTube Setup Wizard**, copy the callback URL, upload `client_secret.json`, and click **Connect YouTube**.
 2. Open **Accounts → Instagram Setup Wizard**, copy the callback URL, save your App ID & Secret, and click **Connect Instagram**.
 3. Test your first authorized video as **Private** before switching your default preset to **Public**.

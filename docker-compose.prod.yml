@@ -76,7 +76,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - DOMAIN=${DOMAIN:-socialrelay.skypatrol.online}
+      - DOMAIN=${DOMAIN:-socialrelay.yourdomain.com}
     volumes:
       - ./infrastructure/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

@@ -1,4 +1,4 @@
-{$DOMAIN:socialrelay.skypatrol.online} {
+{$DOMAIN:socialrelay.yourdomain.com} {
     encode zstd gzip
 
     request_body {

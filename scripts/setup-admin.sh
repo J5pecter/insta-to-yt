@@ -6,8 +6,8 @@ if [ ! -f ".env.production" ]; then
   exit 1
 fi
 
-read -rp "Enter Administrator Email [admin@skypatrol.online]: " ADMIN_EMAIL
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@skypatrol.online}"
+read -rp "Enter Administrator Email [admin@yourdomain.com]: " ADMIN_EMAIL
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@yourdomain.com}"
 
 read -rsp "Enter Strong Administrator Password (min 12 chars): " ADMIN_PASS
 echo ""
