@@ -37,6 +37,10 @@ jobs:
         env:
           VITE_BASE_PATH: /insta-to-yt/
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || '/api/v1' }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || '' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || '' }}
+          VITE_APP_ENV: production
+          VITE_APP_TIMEZONE: Asia/Kolkata
         run: |
           npm ci || npm install
           npm run build

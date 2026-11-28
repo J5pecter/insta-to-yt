@@ -1,0 +1,42 @@
+name: Deploy Supabase Backend
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/**'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-supabase:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production-supabase
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link & Push PostgreSQL Migrations
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' && secrets.SUPABASE_PROJECT_REF != '' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+          supabase db push
+
+      - name: Deploy Edge Functions
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' && secrets.SUPABASE_PROJECT_REF != '' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --no-verify-jwt youtube-oauth-callback
+          supabase functions deploy --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --no-verify-jwt instagram-oauth-callback
+          supabase functions deploy --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"

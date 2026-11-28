@@ -15,6 +15,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   useEffect(() => {
     let active = true;
+    if (api.isCloudMode()) {
+      setServerStatus('online');
+      return () => { active = false; };
+    }
     fetch('/api/v1/system/health', { method: 'GET' })
       .then((res) => {
         if (!active) return;
@@ -71,7 +75,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             {serverStatus === 'online' ? (
               <span className="text-[11px] text-success flex items-center space-x-1 font-medium">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Server online</span>
+                <span>{api.isCloudMode() ? 'Cloud connected' : 'Server online'}</span>
               </span>
             ) : serverStatus === 'unavailable' ? (
               <span className="text-[11px] text-warning flex items-center space-x-1 font-medium">

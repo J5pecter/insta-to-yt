@@ -1,0 +1,32 @@
+# SocialRelay V5 — Supabase Project Configuration
+project_id = "socialrelay-production"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "https://j5pecter.github.io/insta-to-yt/"
+additional_redirect_urls = ["https://j5pecter.github.io/insta-to-yt/", "http://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = true
+enable_confirmations = false
